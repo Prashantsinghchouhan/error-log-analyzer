@@ -1,6 +1,6 @@
 # Error Log Analyzer
 
-This project uses Node.js and OpenAI's GPT API to analyze logs and summarize errors.
+This project uses Node.js and Ollama (llama 3.2) to analyze logs and summarize errors.
 
 ## Setup
 

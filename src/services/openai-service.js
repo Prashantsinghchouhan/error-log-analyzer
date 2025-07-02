@@ -1,44 +1,34 @@
 const axios = require("axios");
 const AppError = require("../utils/errors/app-error");
+const dotenv = require("dotenv");
+dotenv.config();
 
 async function analyzeLogsWithOpenAI(logText) {
   const prompt = `Analyze the following logs and summarize key issues:\n${logText}`;
   try {
     const response = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
+      "http://127.0.0.1:11434/api/generate",
       {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
+        model: "llama3.2:1b",
+        prompt: prompt,
+        stream: false,
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
-    return response.data.choices[0].message.content;
+    return response.data.response;
   } catch (error) {
-    const status = error.response.status;
-    const openaiError = error.response.data?.error;
-    if (error.response && error.response.status === 429) {
-      throw new AppError({
-        message: "Too many requests. Please wait and retry",
-        statusCode: error.response.status,
-        explanation: [
-          openaiError?.message ||
-            "You've hit the rate limit. Slow down or upgrade your quota.",
-        ],
-      });
-    }
+    const status = error.response?.status;
+    const explanation = error.response?.data?.error?.message || error.message;
+
     throw new AppError({
-      message: "OpenAI API error",
+      message: "Ollama API error",
       statusCode: status,
-      explanation: [
-        openaiError?.message ||
-          "An unknown error occurred while calling OpenAI.",
-      ],
+      explanation: [explanation],
     });
   }
 }
